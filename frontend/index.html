@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eseménykezelő</title>
     <style>
-        /* CSS alapok a reszponzív megjelenéshez (Flexbox/Grid előkészítés) */
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             padding: 20px; 
             background-color: #f4f4f9;
             color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
         }
         .events-grid {
             display: grid;
@@ -18,47 +19,119 @@
             gap: 20px;
             margin-top: 20px;
         }
-        .event-card { 
+        .card { 
             background: white;
             border: 1px solid #ddd; 
             padding: 20px; 
             border-radius: 8px; 
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover { background-color: #0056b3; }
     </style>
 </head>
 <body>
-    <h1>Események böngészése</h1>
+    <h1>Eseménykezelő</h1>
     
+    <div class="card" style="margin-bottom: 30px;">
+        <h2>Új esemény meghirdetése</h2>
+        <form id="create-event-form">
+            <div class="form-group">
+                <label>Esemény címe:</label>
+                <input type="text" id="title" required>
+            </div>
+            <div class="form-group">
+                <label>Leírás:</label>
+                <input type="text" id="description">
+            </div>
+            <div class="form-group">
+                <label>Dátum és idő:</label>
+                <input type="datetime-local" id="event_date" required>
+            </div>
+            <div class="form-group">
+                <label>Kapacitás (fő):</label>
+                <input type="number" id="capacity" required min="1">
+            </div>
+            <button type="submit">Esemény létrehozása</button>
+        </form>
+    </div>
+
+    <h2>Aktuális események</h2>
     <div id="events-container" class="events-grid">
         <p>Események betöltése folyamatban...</p>
     </div>
 
     <script>
-        // HTTP hívás a backend végponthoz
-        fetch('http://localhost:3000/api/events')
-            .then(response => response.json())
-            .then(data => {
-                const container = document.getElementById('events-container');
-                container.innerHTML = ''; // Töröljük a "betöltés" szöveget
-                
-                // Végigmegyünk az adatbázisból kapott eseményeken
-                data.forEach(event => {
-                    const card = document.createElement('div');
-                    card.className = 'event-card';
-                    card.innerHTML = `
-                        <h2>${event.title}</h2>
-                        <p>${event.description}</p>
-                        <p><strong>📅 Dátum:</strong> ${event.event_date}</p>
-                        <p><strong>👥 Férőhely:</strong> ${event.capacity} fő</p>
-                    `;
-                    container.appendChild(card);
+        // 1. Események lekérdezése (GET)
+        function loadEvents() {
+            fetch('http://localhost:3000/api/events')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('events-container');
+                    container.innerHTML = ''; 
+                    
+                    data.forEach(event => {
+                        const card = document.createElement('div');
+                        card.className = 'card';
+                        card.innerHTML = `
+                            <h3>${event.title}</h3>
+                            <p>${event.description}</p>
+                            <p><strong>📅:</strong> ${event.event_date.replace('T', ' ')}</p>
+                            <p><strong>👥:</strong> ${event.capacity} fő</p>
+                        `;
+                        container.appendChild(card);
+                    });
                 });
+        }
+
+        // 2. Új esemény küldése (POST)
+        document.getElementById('create-event-form').addEventListener('submit', function(e) {
+            e.preventDefault(); // Megakadályozza az oldal újratöltését
+
+            const newEvent = {
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value,
+                event_date: document.getElementById('event_date').value,
+                capacity: document.getElementById('capacity').value
+            };
+
+            fetch('http://localhost:3000/api/events', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newEvent)
             })
-            .catch(error => {
-                console.error('Hiba a betöltéskor:', error);
-                document.getElementById('events-container').innerHTML = '<p>Hiba történt a szerverhez való csatlakozáskor.</p>';
+            .then(response => {
+                if (response.ok) {
+                    alert('Sikeresen létrehozva!');
+                    this.reset(); // Űrlap kiürítése
+                    loadEvents(); // Lista frissítése
+                } else {
+                    alert('Hiba történt a mentéskor!');
+                }
             });
+        });
+
+        // Betöltés indítása
+        loadEvents();
     </script>
 </body>
 </html>
