@@ -47,3 +47,4 @@ app.post('/api/events', (req, res) => {
 app.listen(PORT, () => {
     console.log(`A szerver fut a http://localhost:${PORT} címen.`);
 });
+module.exports = app;
