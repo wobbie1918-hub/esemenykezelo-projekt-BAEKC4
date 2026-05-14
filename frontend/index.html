@@ -3,135 +3,240 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eseménykezelő</title>
+    <title>Eseménykezelő - Profi CMS</title>
     <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            padding: 20px; 
-            background-color: #f4f4f9;
-            color: #333;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .events-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        .card { 
-            background: white;
-            border: 1px solid #ddd; 
-            padding: 20px; 
-            border-radius: 8px; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        input {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
-        }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px; background-color: #f4f4f9; color: #333; max-width: 1200px; margin: 0 auto; }
+        .events-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
+        .card { background: white; border: 1px solid #ddd; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .card.pending { border-left: 5px solid #ffc107; background-color: #fffdf5;}
+        input, select { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 10px;}
+        button { background-color: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 5px;}
         button:hover { background-color: #0056b3; }
+        .btn-danger { background-color: #dc3545; }
+        .btn-success { background-color: #28a745; }
+        .btn-info { background-color: #17a2b8; }
+        .auth-container { display: flex; gap: 20px; margin-bottom: 30px; }
+        .auth-box { flex: 1; }
+        #user-info { display: none; background: #d4edda; padding: 15px; border-radius: 8px; margin-bottom: 20px; color: #155724; border: 1px solid #c3e6cb; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
-    <h1>Eseménykezelő</h1>
+    <h1>Eseménykezelő 🎟️</h1>
+
+    <div id="user-info">
+        <span id="welcome-text"></span>
+        <button onclick="logout()" style="width: auto; margin-left: 15px; background-color: #6c757d;">Kijelentkezés</button>
+    </div>
     
+    <div class="auth-container" id="auth-section">
+        <div class="card auth-box">
+            <h2>Regisztráció</h2>
+            <form id="register-form">
+                <input type="text" id="reg-name" placeholder="Teljes név" required>
+                <input type="email" id="reg-email" placeholder="E-mail cím" required>
+                <input type="password" id="reg-password" placeholder="Jelszó" required>
+                <select id="reg-role" onchange="toggleAdminCode()">
+                    <option value="user">Sima felhasználó</option>
+                    <option value="admin">Adminisztrátor</option>
+                </select>
+                <input type="password" id="reg-admin-code" placeholder="Titkos Admin Kód" class="hidden">
+                <button type="submit">Regisztrálok</button>
+            </form>
+        </div>
+        <div class="card auth-box">
+            <h2>Bejelentkezés</h2>
+            <form id="login-form">
+                <input type="email" id="login-email" placeholder="E-mail cím" required>
+                <input type="password" id="login-password" placeholder="Jelszó" required>
+                <button type="submit">Belépés</button>
+            </form>
+        </div>
+    </div>
+
     <div class="card" style="margin-bottom: 30px;">
         <h2>Új esemény meghirdetése</h2>
         <form id="create-event-form">
-            <div class="form-group">
-                <label>Esemény címe:</label>
-                <input type="text" id="title" required>
-            </div>
-            <div class="form-group">
-                <label>Leírás:</label>
-                <input type="text" id="description">
-            </div>
-            <div class="form-group">
-                <label>Dátum és idő:</label>
-                <input type="datetime-local" id="event_date" required>
-            </div>
-            <div class="form-group">
-                <label>Kapacitás (fő):</label>
-                <input type="number" id="capacity" required min="1">
-            </div>
-            <button type="submit">Esemény létrehozása</button>
+            <input type="text" id="title" placeholder="Esemény címe" required>
+            <input type="text" id="description" placeholder="Leírás (opcionális)">
+            <input type="datetime-local" id="event_date" required>
+            <input type="number" id="capacity" placeholder="Kapacitás (fő)" required min="1">
+            <button type="submit">Küldés jóváhagyásra</button>
         </form>
     </div>
 
-    <h2>Aktuális események</h2>
-    <div id="events-container" class="events-grid">
-        <p>Események betöltése folyamatban...</p>
+    <div id="admin-panel" class="hidden">
+        <h2 style="color: #d39e00;">⚠️ Jóváhagyásra váró események (Admin Panel)</h2>
+        <div id="pending-events-container" class="events-grid" style="margin-bottom: 40px;"></div>
+        <hr>
     </div>
 
+    <h2>Aktuális, jóváhagyott események</h2>
+    <div id="events-container" class="events-grid"></div>
+
     <script>
-        // 1. Események lekérdezése (GET)
-        function loadEvents() {
-            fetch('http://localhost:3000/api/events')
-                .then(response => response.json())
-                .then(data => {
-                    const container = document.getElementById('events-container');
-                    container.innerHTML = ''; 
-                    
-                    data.forEach(event => {
-                        const card = document.createElement('div');
-                        card.className = 'card';
-                        card.innerHTML = `
-                            <h3>${event.title}</h3>
-                            <p>${event.description}</p>
-                            <p><strong>📅:</strong> ${event.event_date.replace('T', ' ')}</p>
-                            <p><strong>👥:</strong> ${event.capacity} fő</p>
-                        `;
-                        container.appendChild(card);
-                    });
-                });
+        const API_URL = 'http://localhost:3000/api';
+
+        // Admin kód mező megjelenítése, ha admint választ a listából
+        function toggleAdminCode() {
+            const role = document.getElementById('reg-role').value;
+            const codeInput = document.getElementById('reg-admin-code');
+            if (role === 'admin') codeInput.classList.remove('hidden');
+            else codeInput.classList.add('hidden');
         }
 
-        // 2. Új esemény küldése (POST)
-        document.getElementById('create-event-form').addEventListener('submit', function(e) {
-            e.preventDefault(); // Megakadályozza az oldal újratöltését
+        function checkLoginState() {
+            const token = localStorage.getItem('token');
+            const role = localStorage.getItem('role');
+            if (token) {
+                document.getElementById('auth-section').style.display = 'none';
+                document.getElementById('user-info').style.display = 'block';
+                document.getElementById('welcome-text').innerText = `Sikeresen bejelentkezve! Jogosultság: ${role.toUpperCase()}`;
+                
+                if (role === 'admin') {
+                    document.getElementById('admin-panel').classList.remove('hidden');
+                    loadPendingEvents(); // Betöltjük a függőben lévőket is!
+                } else {
+                    document.getElementById('admin-panel').classList.add('hidden');
+                }
+            } else {
+                document.getElementById('auth-section').style.display = 'flex';
+                document.getElementById('user-info').style.display = 'none';
+                document.getElementById('admin-panel').classList.add('hidden');
+            }
+            loadEvents();
+        }
 
+        function logout() {
+            localStorage.clear();
+            checkLoginState();
+        }
+
+        // --- ESEMÉNYEK BETÖLTÉSE ---
+        function loadEvents() {
+            fetch(`${API_URL}/events`)
+                .then(res => res.json())
+                .then(data => renderEvents(data, 'events-container', false));
+        }
+
+        function loadPendingEvents() {
+            fetch(`${API_URL}/events/pending`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            })
+            .then(res => res.json())
+            .then(data => renderEvents(data, 'pending-events-container', true));
+        }
+
+        // Közös rajzoló függvény
+        function renderEvents(data, containerId, isPending) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = ''; 
+            const role = localStorage.getItem('role');
+            
+            data.forEach(event => {
+                const card = document.createElement('div');
+                card.className = isPending ? 'card pending' : 'card';
+                
+                let html = `
+                    <h3>${event.title}</h3>
+                    <p><strong>📅:</strong> ${event.event_date.replace('T', ' ')} | <strong>👥:</strong> ${event.capacity} fő</p>
+                    
+                    <button class="btn-info" onclick="toggleDetails(${event.id})">Részletek</button>
+                    <div id="details-${event.id}" class="hidden" style="margin-top: 10px; padding: 10px; background: #eee; border-radius: 4px;">
+                        ${event.description || 'Nincs megadva részletes leírás.'}
+                    </div>
+                `;
+
+                // Ha ADMIN nézi a függőben lévőket
+                if (isPending && role === 'admin') {
+                    html += `<button class="btn-success" onclick="approveEvent(${event.id})">✅ Jóváhagyás</button>`;
+                }
+                
+                // Ha ADMIN (mindent törölhet)
+                if (role === 'admin') {
+                    html += `<button class="btn-danger" onclick="deleteEvent(${event.id})">🗑️ Törlés</button>`;
+                }
+
+                card.innerHTML = html;
+                container.appendChild(card);
+            });
+        }
+
+        // Részletek lenyitása / összecsukása
+        function toggleDetails(id) {
+            const detailsDiv = document.getElementById(`details-${id}`);
+            if (detailsDiv.classList.contains('hidden')) detailsDiv.classList.remove('hidden');
+            else detailsDiv.classList.add('hidden');
+        }
+
+        // Jóváhagyás
+        function approveEvent(id) {
+            fetch(`${API_URL}/events/${id}/approve`, {
+                method: 'PATCH',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            }).then(() => {
+                loadEvents();
+                loadPendingEvents();
+            });
+        }
+
+        // Törlés
+        function deleteEvent(id) {
+            if (!confirm('Biztosan törlöd?')) return;
+            fetch(`${API_URL}/events/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            }).then(() => {
+                loadEvents();
+                if(localStorage.getItem('role') === 'admin') loadPendingEvents();
+            });
+        }
+
+        // Új esemény beküldése
+        document.getElementById('create-event-form').addEventListener('submit', function(e) {
+            e.preventDefault();
             const newEvent = {
                 title: document.getElementById('title').value,
                 description: document.getElementById('description').value,
                 event_date: document.getElementById('event_date').value,
                 capacity: document.getElementById('capacity').value
             };
-
-            fetch('http://localhost:3000/api/events', {
+            fetch(`${API_URL}/events`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(newEvent)
-            })
-            .then(response => {
-                if (response.ok) {
-                    alert('Sikeresen létrehozva!');
-                    this.reset(); // Űrlap kiürítése
-                    loadEvents(); // Lista frissítése
-                } else {
-                    alert('Hiba történt a mentéskor!');
-                }
+            }).then(res => res.json()).then(resData => {
+                alert(resData.message);
+                this.reset();
+                if(localStorage.getItem('role') === 'admin') loadPendingEvents();
             });
         });
 
-        // Betöltés indítása
-        loadEvents();
+        // Auth formok (Regisztráció / Belépés) bekötése - ugyanaz maradt
+        document.getElementById('register-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('reg-name').value,
+                email: document.getElementById('reg-email').value,
+                password: document.getElementById('reg-password').value,
+                role: document.getElementById('reg-role').value,
+                adminCode: document.getElementById('reg-admin-code').value // ÚJ: Küldjük a kódot is!
+            };
+            fetch(`${API_URL}/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+                .then(res => res.json()).then(resData => { alert(resData.error || resData.message); if(!resData.error) this.reset(); });
+        });
+
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const data = { email: document.getElementById('login-email').value, password: document.getElementById('login-password').value };
+            fetch(`${API_URL}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) })
+                .then(res => res.json()).then(resData => {
+                    if (resData.error) alert(resData.error);
+                    else { localStorage.setItem('token', resData.token); localStorage.setItem('role', resData.role); this.reset(); checkLoginState(); }
+                });
+        });
+
+        checkLoginState();
     </script>
 </body>
 </html>
