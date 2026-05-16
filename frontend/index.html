@@ -12,7 +12,7 @@
             margin: 0; 
             padding: 40px 20px; 
             /* Elegáns, halvány színátmenetes háttér */
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
+            background: linear-gradient(135deg, #bca975 0%, #c0aa77 100%); 
             color: #2d3748; 
             min-height: 100vh;
         }
@@ -41,7 +41,6 @@
             padding-bottom: 10px;
         }
 
-        /* --- KÁRTYÁK (CARDS) --- */
         .card { 
             background: rgba(255, 255, 255, 0.95); 
             border: none; 
@@ -54,14 +53,13 @@
             animation: fadeInUp 0.6s ease-out backwards;
         }
 
-        /* Hover effekt a kártyákon: finoman felemelkedik */
         .card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 35px rgba(0,0,0,0.15);
         }
 
         .card.pending { 
-            border-left: 6px solid #f6ad55; 
+            border-left: 6px solid #ffffff; 
             background-color: #fffaf0;
         }
 
@@ -72,7 +70,6 @@
             margin-top: 20px; 
         }
 
-        /* --- ŰRLAPOK ÉS BEVITELI MEZŐK --- */
         input, select { 
             width: 100%; 
             padding: 12px 15px; 
@@ -94,7 +91,6 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
         }
 
-        /* --- GOMBOK --- */
         button { 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white; 
@@ -121,7 +117,6 @@
             transform: translateY(1px);
         }
 
-        /* Különleges gomb színek */
         .btn-danger { background: linear-gradient(135deg, #fc8181 0%, #e53e3e 100%); box-shadow: 0 4px 15px rgba(229, 62, 62, 0.3); }
         .btn-danger:hover { background: linear-gradient(135deg, #e53e3e 0%, #fc8181 100%); }
         
@@ -162,7 +157,6 @@
             animation: fadeIn 0.3s ease;
         }
 
-        /* --- ANIMÁCIÓK KULCSKOCKÁI --- */
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
@@ -173,9 +167,8 @@
             to { opacity: 1; }
         }
 
-        /* Görgessünk sáv dizájn */
         ::-webkit-scrollbar { width: 10px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-track { background: #c38b73; }
         ::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 5px; }
         ::-webkit-scrollbar-thumb:hover { background: #a0aec0; }
     </style>
@@ -238,7 +231,7 @@
     </div>
 
     <script>
-        // --- CSERÉLD KI A TE RENDER LINKEDRE! ---
+       
         const API_URL = 'https://esemenykezelo-api-r8ex.onrender.com/api';
 
         function toggleAdminCode() {
@@ -303,7 +296,6 @@
             data.forEach((event, index) => {
                 const card = document.createElement('div');
                 card.className = isPending ? 'card pending' : 'card';
-                // Enyhe csúsztatás az animációban, hogy lépcsőzetesen jelenjenek meg
                 card.style.animationDelay = `${index * 0.1}s`;
                 
                 let html = `
@@ -409,7 +401,6 @@
                 });
         });
 
-        // Inicializálás
         checkLoginState();
     </script>
 </body>

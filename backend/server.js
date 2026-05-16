@@ -12,8 +12,6 @@ const ADMIN_SECRET = 'titkoskod123'; // Ezt kell beírni az admin regisztráció
 app.use(cors());
 app.use(express.json());
 
-// --- JOGOSULTSÁG ELLENŐRZŐ (Middleware) ---
-// Ezzel védjük le az admin funkciókat
 function authenticateAdmin(req, res, next) {
     const authHeader = req.headers.authorization;
     if (!authHeader) return res.status(403).json({ error: 'Nincs bejelentkezve!' });
@@ -25,7 +23,6 @@ function authenticateAdmin(req, res, next) {
     });
 }
 
-// --- AUTENTIKÁCIÓ ---
 app.post('/api/register', async (req, res) => {
     const { name, email, password, role, adminCode } = req.body;
     if (!name || !email || !password) return res.status(400).json({ error: 'Minden mező kötelező!' });
@@ -55,9 +52,7 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-// --- ESEMÉNYEK KEZELÉSE ---
 
-// Bárki lekérdezheti, de CSAK A JÓVÁHAGYOTTAKAT!
 app.get('/api/events', (req, res) => {
     db.all("SELECT * FROM events WHERE status = 'approved'", [], (err, rows) => {
         if (err) return res.status(500).json({ error: 'Hiba az adatbázis olvasásakor' });
@@ -65,7 +60,6 @@ app.get('/api/events', (req, res) => {
     });
 });
 
-// Bárki létrehozhat eseményt (de 'pending' státuszt kap alapból)
 app.post('/api/events', (req, res) => {
     const { title, description, event_date, capacity } = req.body;
     if (!title || !event_date || !capacity) return res.status(400).json({ error: 'Hiányzó adatok!' });
@@ -77,7 +71,6 @@ app.post('/api/events', (req, res) => {
     });
 });
 
-// ADMIN: Függőben lévő események lekérése
 app.get('/api/events/pending', authenticateAdmin, (req, res) => {
     db.all("SELECT * FROM events WHERE status = 'pending'", [], (err, rows) => {
         if (err) return res.status(500).json({ error: 'Hiba' });
@@ -85,7 +78,6 @@ app.get('/api/events/pending', authenticateAdmin, (req, res) => {
     });
 });
 
-// ADMIN: Esemény jóváhagyása
 app.patch('/api/events/:id/approve', authenticateAdmin, (req, res) => {
     db.run("UPDATE events SET status = 'approved' WHERE id = ?", [req.params.id], function(err) {
         if (err) return res.status(500).json({ error: 'Hiba jóváhagyáskor' });
@@ -93,7 +85,6 @@ app.patch('/api/events/:id/approve', authenticateAdmin, (req, res) => {
     });
 });
 
-// ADMIN: Esemény törlése
 app.delete('/api/events/:id', authenticateAdmin, (req, res) => {
     db.run('DELETE FROM events WHERE id = ?', [req.params.id], function(err) {
         if (err) return res.status(500).json({ error: 'Hiba törléskor' });
